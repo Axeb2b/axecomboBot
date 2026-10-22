@@ -49,8 +49,10 @@ export default async function (message, ctx) {
   const sess = await getSession(chatId);
   const n = parseInt(text, 10);
   if (sess && !isNaN(n) && n >= 1 && n <= 1000000) {
-    let target = n;
-    if (target > 50000) { await api.sendMessage({ chat_id: chatId, text: "Max limit is 50,000 per file. Generating 50,000..." }); target = 50000; }
+    const max = Math.pow(10, 10 - sess.prefix.length);
+    if (n > max) { await api.sendMessage({ chat_id: chatId, text: `❌ Error: For prefix , only  unique numbers are possible. Please enter a smaller amount.` }); return; }
+    if (n > 50000) await api.sendMessage({ chat_id: chatId, text: `⏳ Generating  numbers, please wait...` });
+    const target = n;
     const prefix = sess.prefix === 'ANY' ? sess.operator.slice(0, 2).toUpperCase() + '000' : sess.prefix;
     let nums; try { nums = genMixed(prefix, target); } catch (e) { await api.sendMessage({ chat_id: chatId, text: "⚠️ Server limit reached. Please try a smaller quantity (e.g., 50,000)." }); return; }
     const content = nums.join("\n");
