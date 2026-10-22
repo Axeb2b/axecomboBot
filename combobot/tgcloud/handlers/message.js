@@ -13,29 +13,12 @@ const OPERATORS = {
 
 function genMixed(prefix, qty) {
   const suffixLength = 10 - prefix.length;
-  const set = new Set();
-  let i = 0;
-  while (set.size < qty && i < qty * 10) {
-    let suffix = "";
-    for (let d = 0; d < suffixLength; d++) suffix += Math.floor(Math.random() * 10);
-    const num = prefix + suffix;
-    if (num.length === 10) set.add(num);
-    i++;
-  }
-  const seq = [];
-  for (let j = 0; j < Math.floor(qty * 0.2); j++) seq.push(prefix + String(j).padStart(suffixLength, "0").slice(-suffixLength));
-  const pat = [];
-  for (let j = 0; j < Math.floor(qty * 0.2); j++) pat.push(prefix + String((j % 9) + 1).repeat(suffixLength).slice(0, suffixLength));
-  const all = [...set, ...seq, ...pat];
-  const uniq = [...new Set(all)].slice(0, qty);
-  while (uniq.length < qty) {
-    let suffix = "";
-    for (let d = 0; d < suffixLength; d++) suffix += Math.floor(Math.random() * 10);
-    const num = prefix + suffix;
-    if (num.length === 10 && !uniq.includes(num)) uniq.push(num);
-  }
-  for (let k = uniq.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [uniq[k], uniq[j]] = [uniq[j], uniq[k]]; }
-  return uniq;
+  const max = Math.pow(10, suffixLength);
+  const q = Math.min(qty, max);
+  const arr = [];
+  for (let i = 0; i < q; i++) arr.push(prefix + String(i).padStart(suffixLength, "0"));
+  for (let k = arr.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [arr[k], arr[j]] = [arr[j], arr[k]]; }
+  return arr;
 }
 
 export default async function (message, ctx) {
