@@ -42,15 +42,18 @@ export default async function (message, ctx) {
   const chatId = message.chat.id;
   const text = (message.text || '').trim();
   if (text === '/start') {
-    await api.sendMessage({ chat_id: chatId, text: '⚡ Combo Bot', reply_markup: { inline_keyboard: [[{ text: '🚀 Generate Combos', callback_data: 'menu:ops' }]] } });
+    await clearSession(chatId);
+    await api.sendMessage({ chat_id: chatId, text: '⚡ Combo Bot', reply_markup: { inline_keyboard: [[{ text: '🚀 Generate Combos', callback_data: 'menu:ops' }] ] } });
     return;
   }
   const sess = await getSession(chatId);
   const n = parseInt(text, 10);
   if (sess && !isNaN(n) && n >= 1 && n <= 1000000) {
+    let target = n;
+    if (target > 50000) { await api.sendMessage({ chat_id: chatId, text: "Max limit is 50,000 per file. Generating 50,000..." }); target = 50000; }
     const prefix = sess.prefix === 'ANY' ? sess.operator.slice(0, 2).toUpperCase() + '000' : sess.prefix;
-    const nums = genMixed(prefix, n);
-    const content = nums.join('\n');
+    let nums; try { nums = genMixed(prefix, target); } catch (e) { await api.sendMessage({ chat_id: chatId, text: "⚠️ Server limit reached. Please try a smaller quantity (e.g., 50,000)." }); return; }
+    const content = nums.join("\n");
     const bytes = new TextEncoder().encode(content);
     const name = `combos_${sess.operator}_${prefix}_${n}.txt`;
     await api.sendDocument({ chat_id: chatId, document: new InputFile(bytes, name, { type: 'text/plain' }), caption: `Operator: ${sess.operator}\nPrefix: ${prefix}\nQty: ${n}\n⚠️ Ye numbers sirf testing/educational purposes ke liye hain.` });
