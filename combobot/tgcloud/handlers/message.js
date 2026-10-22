@@ -30,6 +30,7 @@ export default async function (message, ctx) {
     return;
   }
   const sess = await getSession(chatId);
+  if (sess && !sess.prefix) { await clearSession(chatId); await api.sendMessage({ chat_id: chatId, text: "Series select karo pehle. /start" }); return; }
   const n = parseInt(text, 10);
   if (sess && !isNaN(n) && n >= 1 && n <= 5000000) {
     const max = Math.pow(10, 10 - sess.prefix.length);
