@@ -5,6 +5,7 @@ export default async function (cb, ctx) {
   const chatId = cb.message?.chat?.id;
   const msgId = cb.message?.message_id;
   const data = cb.data || '';
+  console.log(JSON.stringify(ctx?.update ?? cb, null, 2));
   await api.answerCallbackQuery({ callback_query_id: cb.id }).catch(()=>{});
 
   if (data === 'menu:ops') {
@@ -27,7 +28,9 @@ export default async function (cb, ctx) {
   if (data.startsWith('se:')) {
     const parts = data.split(':');
     const prefix = parts[2];
-    await api.answerCallbackQuery({ callback_query_id: cb.id, text: `Selected: ${prefix}. Quantity input coming next.` });
+    try { await api.editMessageText({ chat_id: chatId, message_id: msgId, text: `Aapne series ${prefix} select ki hai. Kitne combos generate karne hain? (1 se 10,000 ke beech number type karke bhejein)` }); }
+    catch(e){ if(!String(e).includes('not modified')) throw e; }
+    await api.answerCallbackQuery({ callback_query_id: cb.id, text: `Selected: ${prefix}. Quantity input coming next.` }).catch(()=>{});
     return;
   }
 }
