@@ -62,21 +62,23 @@ export default async function (cb, ctx) {
     const outSeries = series === 'ALL' ? (CATSERIES[cat]||['ALL']) : [series];
     let buf=''; let n=0;
     const seen=new Set();
+    let chunk=[];
     for (let i=0;i<q;i++){
       const s = outSeries[i % outSeries.length];
       let id;
-      if (mode==='fixed') id = `${cat.toUpperCase()}-${s}-FIX-${String(i+1).padStart(6,'0')}`;
-      else if (mode==='random') id = `${cat.toUpperCase()}-${s}-R${rndSuffix()}`;
-      else id = `${cat.toUpperCase()}-${s}-M${String(i+1).padStart(6,'0')}-${rndSuffix().slice(0,4)}`;
+      if (mode==='fixed') id = String(1000000000 + i).padStart(10,'0');
+      else if (mode==='random') { do { id = String(Math.floor(Math.random()*9000000000)+1000000000); } while (seen.has(id)); }
+      else { id = String(1000000000 + ((i*7919+104729)%9000000000)).padStart(10,'0'); }
       if (seen.has(id)){ i--; continue; }
       seen.add(id);
-      if (fmt==='csv') buf += `${id},${cat},${s},${mode}\n`;
-      else buf += `${id}\n`;
+      const line = (fmt==='csv') ? `${id},${cat},${s},${mode}` : `${id}`;
+      chunk.push(line);
       n++;
-      if (buf.length>80000 || i===q-1){
-        const bytes=new TextEncoder().encode(buf);
-        await api.sendDocument({ chat_id: chatId, document: new InputFile(bytes, `axe_${cat}_${s}_${n}.${fmt}`, {type: fmt==='csv'?'text/csv':'text/plain'})});
-        buf='';
+      if (chunk.length>=5000 || i===q-1){
+        if (mode!=='fixed') { for(let x=chunk.length-1;x>0;x--){const j=Math.floor(Math.random()*(x+1));[chunk[x],chunk[j]]=[chunk[j],chunk[x]];} }
+        const bytes=new TextEncoder().encode(chunk.join('\n')+'\n');
+        await api.sendDocument({ chat_id: chatId, document: new InputFile(bytes, `axe_${cat}_${n}.${fmt}`, {type: fmt==='csv'?'text/csv':'text/plain'})});
+        chunk=[];
       }
     }
     await api.sendMessage({ chat_id: chatId, text: `Generated ${n} synthetic records (${cat}, ${series}, ${mode}, ${fmt}).`});
