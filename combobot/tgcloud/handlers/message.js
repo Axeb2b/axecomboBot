@@ -31,7 +31,7 @@ export default async function (message, ctx) {
   }
   const sess = await getSession(chatId);
   const n = parseInt(text, 10);
-  if (sess && !isNaN(n) && n >= 1 && n <= 1000000) {
+  if (sess && !isNaN(n) && n >= 1 && n <= 5000000) {
     const max = Math.pow(10, 10 - sess.prefix.length);
     if (n > max) { await api.sendMessage({ chat_id: chatId, text: `❌ Error: For prefix , only  unique numbers are possible. Please enter a smaller amount.` }); return; }
     if (n > 50000) await api.sendMessage({ chat_id: chatId, text: `⏳ Generating  numbers, please wait...` });
