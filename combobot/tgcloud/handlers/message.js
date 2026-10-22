@@ -1,4 +1,5 @@
-import { api } from 'sdk';
+import { api, InputFile } from 'sdk';
+import { getSession, clearSession } from '../lib/session.js';
 
 const OPERATORS = {
   JIO:      { name: "Jio",      prefixes: ["60090","60091","60092","70050","70051","70052","70060","70061","70070","70080","70090"] },
@@ -10,12 +11,43 @@ const OPERATORS = {
   OTHERS:   { name: "Others",   prefixes: ["8528","9653","9877","9803","7355","9517"] },
 };
 
-export { OPERATORS };
+function genMixed(prefix, qty) {
+  const set = new Set();
+  let i = 0;
+  while (set.size < qty && i < qty * 10) {
+    const r = Math.floor(Math.random() * 10000);
+    set.add(prefix + String(r).padStart(4, '0'));
+    i++;
+  }
+  const seq = [];
+  for (let j = 0; j < Math.floor(qty * 0.2); j++) seq.push(prefix + String(j).padStart(4, '0'));
+  const pat = [];
+  for (let j = 0; j < Math.floor(qty * 0.2); j++) pat.push(prefix + String((j % 9) + 1).repeat(4));
+  const all = [...set, ...seq, ...pat];
+  const uniq = [...new Set(all)].slice(0, qty);
+  while (uniq.length < qty) uniq.push(prefix + String(Math.floor(Math.random() * 10000)).padStart(4, '0'));
+  for (let k = uniq.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [uniq[k], uniq[j]] = [uniq[j], uniq[k]]; }
+  return uniq;
+}
 
 export default async function (message, ctx) {
   const chatId = message.chat.id;
-  if (message.text === '/start') {
-    await api.sendMessage({ chat_id: chatId, text: '⚡ Combo Bot\n\n⚠️ Ye numbers sirf testing/educational purposes ke liye hain.', reply_markup: { inline_keyboard: [[{ text: '🚀 Generate Combos', callback_data: 'menu:ops' }]] } });
+  const text = (message.text || '').trim();
+  if (text === '/start') {
+    await api.sendMessage({ chat_id: chatId, text: '⚡ Combo Bot', reply_markup: { inline_keyboard: [[{ text: '🚀 Generate Combos', callback_data: 'menu:ops' }]] } });
+    return;
+  }
+  const sess = await getSession(chatId);
+  const n = parseInt(text, 10);
+  if (sess && !isNaN(n) && n >= 1 && n <= 10000) {
+    const prefix = sess.prefix === 'ANY' ? sess.operator.slice(0, 2).toUpperCase() + '000' : sess.prefix;
+    const nums = genMixed(prefix, n);
+    const content = nums.join('\n');
+    const bytes = new TextEncoder().encode(content);
+    const name = `combos_${sess.operator}_${prefix}_${n}.txt`;
+    await api.sendDocument({ chat_id: chatId, document: new InputFile(bytes, name, { type: 'text/plain' }), caption: `Operator: ${sess.operator}\nPrefix: ${prefix}\nQty: ${n}\n⚠️ Ye numbers sirf testing/educational purposes ke liye hain.` });
+    await clearSession(chatId);
+    await api.sendMessage({ chat_id: chatId, text: 'Done.', reply_markup: { inline_keyboard: [[{ text: '🔁 Generate Again', callback_data: 'menu:ops' }]] } });
     return;
   }
   await api.sendMessage({ chat_id: chatId, text: '⚡ Combo Bot ready. Send /start' });
