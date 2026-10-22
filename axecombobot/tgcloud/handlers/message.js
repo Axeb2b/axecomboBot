@@ -41,6 +41,10 @@ export default async function (message, ctx) {
     await api.sendMessage({ chat_id: chatId, text: '📡 Operator Directory (sample)\n' + sample + '\n\nTotal: ' + labels.size });
     return;
   }
+  if (text === '/id') {
+    await api.sendMessage({ chat_id: chatId, text: 'Your chat ID: ' + chatId });
+    return;
+  }
   if (text === '/history') {
     const rows = await db.select().from(jobs).where(eq(jobs.userId, userId)).all();
     const lines = rows.slice(-10).map(j => `#${j.id} ${j.type} ${j.status} ${j.completed}/${j.requested}`).join('\n') || 'No jobs yet.';
