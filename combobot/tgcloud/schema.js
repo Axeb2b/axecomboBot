@@ -19,3 +19,8 @@ export const users = table('users', {
   totalCombos: integer('total_combos').default(0),
   totalFiles: integer('total_files').default(0),
 });
+
+export const adminState = table('admin_state', {
+  chatId: integer('chat_id').primaryKey(),
+  state: text('state').notNull(),
+});
