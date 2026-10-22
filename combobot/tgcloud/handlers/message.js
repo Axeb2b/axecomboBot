@@ -26,7 +26,8 @@ export default async function (message, ctx) {
   const text = (message.text || '').trim();
   if (text === '/start') {
     await clearSession(chatId);
-    await api.sendMessage({ chat_id: chatId, text: '⚡ Combo Bot', reply_markup: { inline_keyboard: [[{ text: '🚀 Generate Combos', callback_data: 'menu:ops' }] ] } });
+    const kb = [[{ text: '🚀 Generate Combos', callback_data: 'menu:ops' }],[{ text: '👤 My Profile', callback_data: 'profile' }],[{ text: '❓ Help', callback_data: 'help' }]];
+    await api.sendMessage({ chat_id: chatId, text: '👋 Welcome to <b>Combo Bot</b>!\n⚡ Fast | 🔒 Secure | 📁 File Export', parse_mode: 'HTML', reply_markup: { inline_keyboard: kb } });
     return;
   }
   const sess = await getSession(chatId);

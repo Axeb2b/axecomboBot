@@ -17,7 +17,9 @@ export default async function (cb, ctx) {
   const data = cb.data || '';
   await api.answerCallbackQuery({ callback_query_id: cb.id }).catch(()=>{});
 
-  if (data === 'menu:ops') {
+  if (data === "profile") { await api.sendMessage({ chat_id: chatId, text: "👤 Profile\nTotal Combos: 0" }); return; }
+  if (data === "help") { await api.sendMessage({ chat_id: chatId, text: "Help: use menu" }); return; }
+  if (data === "menu:ops") {
     const kb = Object.keys(OPERATORS).map(k=>[{text: OPERATORS[k].name, callback_data: `op:${k}`}]);
     try { await api.editMessageText({ chat_id: chatId, message_id: msgId, text: 'Operator select karo:', reply_markup: { inline_keyboard: kb } }); }
     catch(e){ if(!String(e).includes('not modified')) throw e; }
