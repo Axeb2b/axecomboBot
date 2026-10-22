@@ -38,7 +38,7 @@ export default async function (cb, ctx) {
     const parts = data.split(':');
     const key = parts[1]; const prefix = parts[2];
     await setSession(chatId, OPERATORS[key].name, prefix);
-    try { await api.editMessageText({ chat_id: chatId, message_id: msgId, text: `Aapne series ${prefix} select ki hai. Kitne combos generate karne hain? (1 se 10,000 ke beech number type karke bhejein)` }); }
+    try { await api.editMessageText({ chat_id: chatId, message_id: msgId, text: `Aapne series ${prefix} select ki hai. Kitne combos generate karne hain? (1 se 1,000,000 ke beech number type karke bhejein)` }); }
     catch(e){ if(!String(e).includes('not modified')) throw e; }
     await api.answerCallbackQuery({ callback_query_id: cb.id, text: `Selected: ${prefix}. Quantity input coming next.` }).catch(()=>{});
     return;
